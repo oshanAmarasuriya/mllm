@@ -108,7 +108,7 @@ void mllm::BPETokenizer::tokenize(const std::string &text, std::vector<token_id_
     size_t offset = 0;
     int idx = 0;
     if (bos) {
-        tokens.emplace_back(mllm::BPETokenizer::TokenBos);
+        tokens.emplace_back(mllm::BPETokenizer::TokenBos);//sotres id for the token 'BEGINING OF THE SEQUENCE'
     }
     if (!merge_rank.empty()){
         std::vector<std::string> words;
@@ -118,19 +118,19 @@ void mllm::BPETokenizer::tokenize(const std::string &text, std::vector<token_id_
         std::string::const_iterator searchStart(text.cbegin());
         while (std::regex_search(searchStart, text.cend(), match, pattern)) {
             words.push_back(match.str());
-            searchStart = match.suffix().first;
+            searchStart = match.suffix().first;//above codeblock is used to break text into words using a regEx and store in a vector
         }
 
-        for (const auto& word:words){
-            auto word_splits = bpe(word, end_symbol);
-            for (const auto& word_split:word_splits){
-                if (auto result = this->vocab_map_.find(word_split); result != this->vocab_map_.end()) {
+        for (const auto& word:words){// now we are going to break each word into small substrings and represent them with token ids.(They are just numbers that represent each token defined in the vocabulary)
+            auto word_splits = bpe(word, end_symbol); //each word is further split into subwords using bpe method(it is a common algorithm already implemented above)
+            for (const auto& word_split:word_splits){//for each subword
+                if (auto result = this->vocab_map_.find(word_split); result != this->vocab_map_.end()) { //searching in vocab map for token id
                     auto token_idx =  result->second ;
-                    tokens.emplace_back(id_token_[token_idx].score);
-                } else {
-                    if (!byte_fallback) {
+                    tokens.emplace_back(id_token_[token_idx].score);// then add that token id into the 
+                } else {// if a token(a subword) found without a matching for any token id
+                    if (!byte_fallback) {// if this option is turned off, just assign unknown token id for that token.
                         tokens.emplace_back(mllm::BPETokenizer::TokenUnk);
-                    } else {
+                    } else {//otherwise we go to charcter level and each character in the subword is converted to a token ID and added to the tokens vector.
                         for (const char j : word_split) {
                             token_id_t token_id = static_cast<uint8_t>(j) + 3;
                             tokens.emplace_back(token_id);
