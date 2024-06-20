@@ -81,7 +81,7 @@ private:
     TensorType ttype_ = NORMAL_TENSOR;
 
     Backend *backend_{};
-    void *host_ptr_{};
+    void *host_ptr_{}; //initializes to nullptr. see Tensor.cpp for memory allocation
     void *device_ptr_{}; // not used for CPU
     vector<int> shape_;
     int capacity_{};
@@ -427,7 +427,7 @@ public:
     template <typename Dtype>
     void setDataAt(const int batch, const int head, const int sequence, const int dimension, Dtype value) {
         if (!aggregated_) {
-            Dtype *typed_ptr = static_cast<Dtype *>(host_ptr_);
+            Dtype *typed_ptr = static_cast<Dtype *>(host_ptr_); //converts pointer type for the intended type via template(eg: void* to float* in which type, tensor data is saved)
             typed_ptr[offset(batch, head, sequence, dimension)] = value;
         } else {
             int b = batch;
@@ -1426,10 +1426,16 @@ public:
         reshape(shape);
     }
 private:
-    bool reshape(const vector<int> &shape) {
-        assert(shape.size() <= 32);
-        count_ = 1;
+    bool reshape(const vector<int> &shape) {// & means only a reference is used and modifies original shape vector
+        assert(shape.size() <= 32); // a debuging tool like thing to terminate and logging if returns false
+        count_ = 1; //This variable will hold the total number of elements in the tensor.
         shape_.resize(shape.size());
+        /*
+        The method iterates over each dimension in the input shape.
+        It asserts that each dimension is non-negative.
+        It also checks that the product of the dimensions does not overflow an int.
+        count_ is updated to be the product of all dimensions, representing the total number of elements in the tensor.
+        shape_ is updated to reflect the new shape.*/
         for (int i = 0; i < shape.size(); ++i) {
             assert(shape[i] >= 0);
             if (count_ != 0) {
@@ -1440,9 +1446,9 @@ private:
         }
         if (count_ > capacity_) {
             capacity_ = count_;
-            return true;
+            return true; //re-allocation is needed
         }
-        return false;
+        return false;// no re-allocation needed
     }
     int shape(int index) const {
         return shape_[canonicalAxisIndex(index)];

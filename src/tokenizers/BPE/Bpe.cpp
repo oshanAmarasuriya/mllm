@@ -21,6 +21,16 @@ static std::vector<std::pair<string, string>> get_pairs( vector<string> word) {
     return pairs;
 }
 vector<std::string> mllm::BPETokenizer::bpe(const std::string& token, std::string end_symbol) {
+    /*
+    Summary
+        The bpe function implements Byte Pair Encoding by:
+
+        Converting the input token to a Unicode string.
+        Splitting the token into individual characters.
+        Iteratively merging the most frequent adjacent pairs of subwords based on a ranking (merge_rank).
+        Returning the final sequence of subwords.
+        This process reduces the token to a series of subwords that can be efficiently handled by the language model, capturing common patterns and substructures in the text.
+    */
     std::wstring_convert<std::codecvt_utf8_utf16<char32_t>, char32_t> converter;
     std::u32string u32_token = converter.from_bytes(token);
 
@@ -145,6 +155,16 @@ void mllm::BPETokenizer::tokenize(const std::string &text, std::vector<token_id_
         }
         return;
     }
+    // from now on another method is used to get token ids for the input text.
+    /*
+    This approach is used if merge_rank is empty.
+    The input text is processed character by character.
+    Each character is turned into a CharSymbol object, which keeps track of its position and length.
+    Symbols are merged based on some criteria (presumably related to BPE but not explicitly using merge_rank).
+    The resulting symbols are then looked up in the vocabulary map (vocab_map_) to find the corresponding token ID.
+    If a symbol is not found in the vocabulary and byte_fallback is true, each character of the symbol is converted to a byte-level token ID and added to the tokens vector.
+    If a symbol is not found in the vocabulary and byte_fallback is false, an unknown token ID (TokenUnk) is added.
+    */
     while (offset < text.size()) {
         CharSymbol symbol;
         symbol.ch = text.c_str() + offset;

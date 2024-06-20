@@ -11,15 +11,15 @@
 namespace mllm {
 
 Tensor::Tensor(const int batch, const int head, const int sequence, const int dimension) :
-    host_ptr_(), capacity_(0) {
+    host_ptr_(), capacity_(0) { //constructor implementation
     reshape(batch, head, sequence, dimension);
 }
-Tensor::Tensor(int batch, int head, int sequence, int dimension, Backend *bn, bool do_alloc) {
-    dtype_ = MLLM_TYPE_F32;
+Tensor::Tensor(int batch, int head, int sequence, int dimension, Backend *bn, bool do_alloc) {//constructor implementation
+    dtype_ = MLLM_TYPE_F32; //data type
     setBackend(bn);
-    reshape(batch, head, sequence, dimension);
+    reshape(batch, head, sequence, dimension); //updates _count, _capacity, _shape (this variable is in Tensor.hpp)
     if (do_alloc) {
-        alloc();
+        alloc();// allocates memory for tensor
     }
 }
 
@@ -30,11 +30,12 @@ Tensor::Tensor(const vector<int> &shape) :
 
 bool Tensor::reshape(const int batch, const int head, const int sequence, const int dimension) {
     vector<int> shape(4);
-    shape[chls()[BATCH]] = batch;
-    shape[chls()[HEAD]] = head;
-    shape[chls()[SEQUENCE]] = sequence;
-    shape[chls()[DIMENSION]] = dimension;
-    return reshape(shape);
+    shape[chls()[BATCH]] = batch;// i.e. shape[0]
+    shape[chls()[HEAD]] = head; // shape[2]
+    shape[chls()[SEQUENCE]] = sequence; // shape[1]
+    shape[chls()[DIMENSION]] = dimension; // shape[3]
+    // in above code , what is basically done was assigning the provided batch, head, sequence, and dimension values to the appropriate positions in the shape vector.
+    return reshape(shape); // overloading method accepting shape vector. (see Tensor.hpp)
 }
 
 void Tensor::alloc() {

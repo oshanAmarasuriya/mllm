@@ -42,7 +42,7 @@ public:
         if (str_i > 0){
             tokens_id[0] = 13;
         }
-        return BPETokenizer::tokens2Input(tokens_id);
+        return BPETokenizer::tokens2Input(tokens_id); //tokenizer object is not needed to call this method because it is a static one
     }
 
     std::string detokenize(const std::vector<token_id_t> &tokens) {
