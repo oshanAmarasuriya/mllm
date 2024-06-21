@@ -25,8 +25,8 @@ int main(int argc, char **argv) {
 
     auto tokenizer = LLaMATokenizer(vocab_path);
 
-    LLaMAConfig config(tokens_limit, "7B", LLAMAROPE);
-    auto model = LLaMAModel(config);
+    LLaMAConfig config(tokens_limit, "7B", LLAMAROPE);//LLaMAConfig object
+    auto model = LLaMAModel(config); //LLaMAModel object
     model.load(model_path);
 
     vector<string> in_strs = {
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
         std::cout << "[Q] " << in_str << std::endl;
         std::cout << "[A] " << std::flush;
         for (int step = 0; step < 100; step++) {
-            auto result = model({input_tensor});
+            auto result = model({input_tensor}); //operator overloading in c++ . It calls operator() function in the object using this syntax
             auto outputs = tokenizer.detokenize(result[0]);
             auto out_string = outputs.first;
             auto out_token = outputs.second;

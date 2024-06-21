@@ -72,7 +72,7 @@ public:
     explicit LLaMAModel(const LLaMAConfig &config) :
         LLaMAModel(config.vocab_size, config.hidden_dim, config.head_size, config.ffn_hidden, config.block_num, config.RoPE_type, config.cache_limit,
                    config.names_config, config.names_config.blk_name) {
-    }
+    }//this constructor uses member initializer to call the other other constructor below
     LLaMAModel(int vocab_size, int hidden_dim, int head_size, int ffn_hidden, int block_num, RoPEType RoPE_type, int cache_limit,
                const LLaMANameConfig &names, const string &base_name) {
         embedding = Embedding(vocab_size, hidden_dim, names.token_embd_name);
