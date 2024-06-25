@@ -25,7 +25,7 @@ public:
     Layer() = default;
     void init(std::string name, OpType type) {
         name_ = std::move(name);
-        param_["type"] = type;
+        param_["type"] = type;// eg:- for embedding purpose, type is EMBEDDING
         Module::initBackend(MLLM_CPU);
         backend_ = Module::backends[MLLM_CPU];
         saved_list_idx = Module::listIdx;
@@ -91,14 +91,14 @@ private:
 protected:
     bool INIT_OP() {
         if (op_ == nullptr) {
-            op_ = backend_->opCreate(param_, name_);
+            op_ = backend_->opCreate(param_, name_);//_backend is a CPUBackend object. creates an operator (cpuembedding)
         }
         if (Module::doLoad) {
-            op_->load(*Module::loader);
+            op_->load(*Module::loader);// loads data from .mllm file into weights_ tensor in CPUEmbedding (op) object.
         }
         return Module::doLoad;
     }
-    Tensor &_1I1O_OP(Tensor &input) {
+    Tensor &_1I1O_OP(Tensor &input) { // in embedding generation operation, input tensor is the tensor having token ids for tokens in input sequence
         Module::runlistIdx = saved_list_idx;
         if (INIT_OP()) {
             return input;
@@ -109,14 +109,14 @@ protected:
             }
             switch (input.status()) {
             case TENSOR_STATIC_INIT: {
-                if (Tensor::gph_.find(input.name()) == Tensor::gph_.end()) {
+                if (Tensor::gph_.find(input.name()) == Tensor::gph_.end()) {//if input tensor name:'input' is not in the graph
                     Tensor::gph_[input.name()] = input;
                     Tensor::gph_[input.name()].setName(input.name());
-                } else if (input.count() != Tensor::gph_[input.name()].count()) {
+                } else if (input.count() != Tensor::gph_[input.name()].count()) { // note: mostly, count() == batch() * head() * sequence() * dimension()
                     Tensor::gph_[input.name()] = input;
                     Tensor::gph_[input.name()].setName(input.name());
                 }
-                auto in_name = input.name();
+                auto in_name = input.name();//'input' if we are talking about input tensor
                 if (layername_2_tensorname.find(layer_next_name) == layername_2_tensorname.end()) {
                     if (param_["type"] == KVCACHE) {
                         layername_2_tensorname[layer_next_name] = layer_next_name;
@@ -128,10 +128,10 @@ protected:
                 }
                 auto next_name = layername_2_tensorname[layer_next_name];
                 if (Tensor::gph_.find(next_name) == Tensor::gph_.end()) {
-                    Tensor::gph_[next_name] = Tensor(backend_);
+                    Tensor::gph_[next_name] = Tensor(backend_);//new tensor for output(it is for the next layer)
                     Tensor::gph_[next_name].setName(next_name);
                 }
-                vector<shared_ptr<Tensor>> shared_inputs{std::shared_ptr<Tensor>(&Tensor::gph_[in_name], [](Tensor *) {})};
+                vector<shared_ptr<Tensor>> shared_inputs{std::shared_ptr<Tensor>(&Tensor::gph_[in_name], [](Tensor *) {})};// In this context, &Tensor::gph_[in_name] is likely a raw pointer to a Tensor object that should not be deleted by the shared_ptr. The custom deleter [](Tensor *) {} effectively makes the shared_ptr a non-owning pointer, preventing it from performing any deletion.
                 vector<shared_ptr<Tensor>> shared_outputs{std::shared_ptr<Tensor>(&Tensor::gph_[next_name], [](Tensor *) {})};
                 op_->reshape(shared_inputs, shared_outputs);
                 op_->setUp(shared_inputs, shared_outputs);
@@ -524,10 +524,10 @@ public:
     explicit Embedding(int vocab_size, int hidden_size, std::string name) {
         param_["hidden_size"] = hidden_size;
         param_["vocab_size"] = vocab_size;
-        init(std::move(name), OpType::EMBEDDING);
+        init(std::move(name), OpType::EMBEDDING); // sets layer name as embedding and operation type as embedding
     }
-    Tensor &operator()(Tensor &input) {
-        return _1I1O_OP(input);
+    Tensor &operator()(Tensor &input) {// this method is called via embedding object in modeling_llama.hpp
+        return _1I1O_OP(input);//input is input tokid tensor
     }
 };
 

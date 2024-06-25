@@ -47,9 +47,9 @@ CPUBackend::CPUBackend(shared_ptr<MemoryManager> &mm) :
 }
 
 Op *CPUBackend::opCreate(const OpParam &op_param, string name, int threadCount) {
-    OpType optype = OpType(op_param.find("type")->second);
-    auto iter = map_creator_.find(optype);
-    if (iter == map_creator_.end()) {
+    OpType optype = OpType(op_param.find("type")->second);// eg:- for embedding purpose, type is EMBEDDING
+    auto iter = map_creator_.find(optype);// this ma has creator object with their name. They have been added in registerOps method
+    if (iter == map_creator_.end()) {// if not found
         printf("Don't support type \n");
         return nullptr;
     }

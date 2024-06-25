@@ -79,10 +79,10 @@ ParamLoader::ParamLoader(std::string filename, bool use_mmap) :
         std::cout << "magic number error" << std::endl;
         exit(1);
     }
-    uint64_t index_size = readu64(fp_);
-    uint64_t index_offset = index_size + ftell(fp_);
+    uint64_t index_size = readu64(fp_); // note: use of fread() automatically increments pointer after reading
+    uint64_t index_offset = index_size + ftell(fp_); // note: ftel() says current pointer
     while (ftell(fp_) < index_offset) {
-        std::string name = readString(fp_);
+        std::string name = readString(fp_); // here, both name length and name string is read
         uint64_t length = readu64(fp_);
         uint64_t offset = readu64(fp_);
         offsets_[name] = std::make_pair(offset, length);

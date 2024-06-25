@@ -80,7 +80,7 @@ public:
         norm = RMSNorm(hidden_dim, 1e-6, names.post_norm_name);
         lm_head = Linear(hidden_dim, vocab_size, false, names.lm_head_name);
     }
-    vector<Tensor> Forward(vector<Tensor> inputs, vector<std::any> args) override  {
+    vector<Tensor> Forward(vector<Tensor> inputs, vector<std::any> args) override  {//this method was called in Model.hpp file
         auto x = embedding(inputs[0]);
         for (auto &block : blocks) {
             x = block({x})[0];

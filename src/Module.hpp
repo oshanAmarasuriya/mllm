@@ -27,7 +27,7 @@ public:
     virtual ~Module() = default;
 
     static void initBackend(BackendType type = BackendType::MLLM_CPU) {
-        if (Module::backends.find(type) == Module::backends.end()) {
+        if (Module::backends.find(type) == Module::backends.end()) { //if Key `type` is not present in `Module::backends`, this condition becomes true
             switch (type) {
             case BackendType::MLLM_CPU: {
                 shared_ptr<MemoryManager> mm = nullptr;
@@ -48,21 +48,21 @@ public:
     }
 
     void load(string path) {
-        initLoader(path);
-        Module::doLoad = true;
+        initLoader(path); //loads magic num and verifies it, iterates through indices and reads name, weight length, offset, datatype and stores them in mappings like this=>  offsets_[name] = (offset, length) and  data_type_[name]=datatype
+        Module::doLoad = true; // set this flag true
         vector<Tensor> tmps;
         int max_in_size = 5;
         for (int i = 0; i < max_in_size; ++i) {
             Tensor::gph_[std::to_string(i)] = Tensor(Module::backends[MLLM_CPU]);
             tmps.push_back(Tensor::gph_[std::to_string(i)]);
         }
-        vector<int> tmpt = {0, 0};
+        vector<int> tmpt = {0, 0}; // input for some operation involving those temporary tensors
         operator()(tmps, tmpt);
         Module::doLoad = false;
         Tensor::gph_.clear();
     }
 
-    virtual vector<Tensor> Forward(vector<Tensor> inputs, vector<std::any> args) = 0;
+    virtual vector<Tensor> Forward(vector<Tensor> inputs, vector<std::any> args) = 0; // =0 means must be overriden by subclasses
 
     template <typename... Args>
     vector<std::any> convertArgsToAnyVector(Args... args) {
@@ -72,7 +72,7 @@ public:
     vector<Tensor> operator()(vector<Tensor> inputs, Args... args) {
         vector<std::any> anyArgs = convertArgsToAnyVector(args...);
         if(doLoad) {
-            return Forward(inputs, anyArgs);
+            return Forward(inputs, anyArgs); // this Forward method implementation is in the modeling_llama.hpp file
         }
         if (inputs[0].ttype() == TensorType::INPUT_TENSOR) {
             for (auto &input : inputs) {

@@ -28,7 +28,7 @@ ErrorCode CPUEmbedding::load(AbstructLoader &loader) {
     if (loader.getDataType(weight_.name()) != MLLM_TYPE_COUNT) {
         weight_.setDtype(loader.getDataType(weight_.name()));
         weight_.alloc();
-        loader.load(&weight_);
+        loader.load(&weight_);// loads data from mllm file to this weight_ tensor
     } else {
         weight_.setDtype(MLLM_TYPE_F32);
         weight_.alloc();
@@ -42,7 +42,7 @@ ErrorCode CPUEmbedding::execute(vector<shared_ptr<Tensor>> inputs, vector<shared
     auto &input = inputs[0];
     auto &output = outputs[0];
     switch (weight_.dtype()) {
-    case MLLM_TYPE_F32: {
+    case MLLM_TYPE_F32: {//this below code is a lookup for vector embeddings  form _weight tensor for each token id in the input tensor and put them in the output tensor
         for (int batch = 0; batch < input->batch(); ++batch) {
             for (int head = 0; head < input->head(); ++head) { // NOLINT(*-use-default-none)
                 #pragma omp parallel for num_threads(thread_count)

@@ -16,7 +16,7 @@ public:
     public:
         virtual Op *create(OpParam op_param, Backend *bn, string, int threadCount) const = 0;
     };
-    bool addCreator(OpType t, Creator *c) {
+    bool addCreator(OpType t, Creator *c) {// this method  is called with the CPUBackend constructor's registerOps() method
         if (map_creator_.find(t) != map_creator_.end()) {
             printf("Error: %d type has be added\n", t);
             return false;
