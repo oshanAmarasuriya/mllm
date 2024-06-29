@@ -3,6 +3,7 @@ mkdir ../build-arm
 cd ../build-arm || exit
 
 cmake .. \
+-G "MinGW Makefiles" \
 -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
 -DCMAKE_BUILD_TYPE=Release \
 -DANDROID_ABI="arm64-v8a" \
@@ -13,4 +14,4 @@ cmake .. \
 -DARM=ON \
 -DAPK=OFF
 
-make -j4
+mingw32-make -j4
